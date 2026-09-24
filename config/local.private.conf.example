@@ -1,0 +1,5 @@
+# Copy this file to config/local.private.conf. Do not add the copied file to Git.
+#
+# Install one SSH public key for root.
+CORE_IMAGE_EXTRA_INSTALL:append = " ssh-keys"
+SSH_AUTHORIZED_KEY = "ssh-ed25519 AAAA... user@host"

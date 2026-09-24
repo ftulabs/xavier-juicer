@@ -1,0 +1,18 @@
+POKY_BBLAYERS_CONF_VERSION = "2"
+
+BBPATH = "${TOPDIR}"
+BBFILES ?= ""
+
+BBLAYERS ?= " \
+  @PROJECT_ROOT@/meta \
+  @PROJECT_ROOT@/meta-poky \
+  @PROJECT_ROOT@/meta-yocto-bsp \
+  @PROJECT_ROOT@/meta-openembedded/meta-oe \
+  @PROJECT_ROOT@/meta-openembedded/meta-python \
+  @PROJECT_ROOT@/meta-openembedded/meta-networking \
+  @PROJECT_ROOT@/meta-openembedded/meta-filesystems \
+  @PROJECT_ROOT@/meta-virtualization \
+  @PROJECT_ROOT@/meta-tegra \
+  @PROJECT_ROOT@/meta-tailscale \
+  @PROJECT_ROOT@/meta-custom \
+  "

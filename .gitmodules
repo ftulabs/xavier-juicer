@@ -1,0 +1,16 @@
+[submodule "meta-openembedded"]
+	path = meta-openembedded
+	url = https://git.openembedded.org/meta-openembedded
+	branch = scarthgap
+[submodule "meta-virtualization"]
+	path = meta-virtualization
+	url = https://github.com/ni/meta-virtualization
+	branch = nilrt/master/scarthgap
+[submodule "meta-tegra"]
+	path = meta-tegra
+	url = https://github.com/OE4T/meta-tegra.git
+	branch = scarthgap-l4t-r35.x
+[submodule "meta-tailscale"]
+	path = meta-tailscale
+	url = https://github.com/ChristophHandschuh/meta-tailscale.git
+	branch = master

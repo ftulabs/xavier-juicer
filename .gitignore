@@ -8,6 +8,9 @@ pstage/
 scripts/oe-git-proxy-socks
 sources/
 meta-*/
+!meta-custom/
+config/local.private.conf
+config/local.conf.private
 buildtools/
 !meta-skeleton
 !meta-selftest

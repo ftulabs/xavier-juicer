@@ -1,0 +1,52 @@
+#!/bin/sh
+# Create a clean build configuration and fetch each external layer at its pinned revision.
+set -eu
+
+project_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+build_dir=${1:-"$project_root/build"}
+
+clone_layer() {
+    name=$1
+    url=$2
+    branch=$3
+    revision=$4
+    layer_dir="$project_root/$name"
+
+    if [ -e "$layer_dir" ]; then
+        current=$(git -C "$layer_dir" rev-parse HEAD 2>/dev/null || true)
+        if [ "$current" != "$revision" ]; then
+            printf '%s\n' "Error: $layer_dir exists but is not revision $revision." >&2
+            exit 1
+        fi
+        return
+    fi
+
+    git clone --depth 1 --branch "$branch" "$url" "$layer_dir"
+    current=$(git -C "$layer_dir" rev-parse HEAD)
+    if [ "$current" != "$revision" ]; then
+        printf '%s\n' "Error: $name resolved to $current, not $revision." >&2
+        exit 1
+    fi
+}
+
+if [ -e "$build_dir/conf/local.conf" ] || [ -e "$build_dir/conf/bblayers.conf" ]; then
+    printf '%s\n' "Error: $build_dir already has a build configuration." >&2
+    printf '%s\n' "Use a new build directory or remove that configuration first." >&2
+    exit 1
+fi
+
+clone_layer meta-openembedded https://git.openembedded.org/meta-openembedded scarthgap b5874ea07d69919d9b40d59f2c2f0bbd24bc3259
+clone_layer meta-virtualization https://github.com/ni/meta-virtualization nilrt/master/scarthgap e066aa71b00d8ef5121fcab3a7ac813058cda09c
+clone_layer meta-tegra https://github.com/OE4T/meta-tegra.git scarthgap-l4t-r35.x 0c507bfe8d64a0e113beeff8f45e7fe0dfb5bc80
+clone_layer meta-tailscale https://github.com/ChristophHandschuh/meta-tailscale.git master c70a30954839eef1923627e3a2f056692611f789
+
+mkdir -p "$build_dir/conf"
+cp "$project_root/config/local.conf" "$build_dir/conf/local.conf"
+if [ -f "$project_root/config/local.private.conf" ]; then
+    cat "$project_root/config/local.private.conf" >> "$build_dir/conf/local.conf"
+fi
+sed "s|@PROJECT_ROOT@|$project_root|g" "$project_root/config/bblayers.conf.in" > "$build_dir/conf/bblayers.conf"
+
+printf '%s\n' "Build configuration created in $build_dir."
+printf '%s\n' "Run: . oe-init-build-env $build_dir"
+printf '%s\n' "Then run: bitbake core-image-minimal"
