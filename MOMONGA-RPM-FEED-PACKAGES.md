@@ -1,6 +1,6 @@
 # Momonga RPM feed package inventory
 
-This file records all 315 RPM package outputs in release `momonga-rpm-feed-2026.10.09-5`, including debug, development, locale, and source RPMs. It is not a list of packages installed in the Xavier image.
+This file records all 320 RPM package outputs in release `momonga-rpm-feed-2026.10.11-2`, including debug, development, locale, and source RPMs. It is not a list of packages installed in the Xavier image.
 
 ## Rebuild the feed packages
 
@@ -12,14 +12,15 @@ bitbake bash bat diffutils fzf gdbm glibc-locale nano ncurses neovim nodejs24 \
   neofetch fastfetch momonga-locale ptest-runner python3 python3-distro \
   python3-jetson-stats python3-numpy python3-nvidia-ml-py python3-onnx \
   python3-onnx-graphsurgeon python3-polygraphy python3-smbus2 python3-tensorrt \
-  tegra-tools tensorrt-trtexec-prebuilt zsh
+  tegra-tools tegra-nvpmodel-base tegra-nvpmodel tegra-nvpower \
+  tensorrt-trtexec-prebuilt zsh
 ```
 
 BitBake also builds each recipe's dependencies. Follow `AGENTS.md` to assemble the curated full feed, sign RPMs, generate and sign metadata, upload only new RPM assets to the append-only package release, and publish a metadata-only feed release. Do not use `bitbake package-index` on the full deploy directory as the public feed contains only the packages listed in this index.
 
 ## Packages added or updated in release 2026.10.09-5
 
-The release adds Fastfetch, Neofetch, `momonga-locale`, ONNX, ONNX GraphSurgeon, TensorRT Python bindings, `tegrastats`, and the `glibc-locale` outputs `locale-base-c` and `glibc-binary-localedata-c`. The latter two satisfy the C.UTF-8 locale dependency on existing systems. It also updates custom RPMs with the C.UTF-8 runtime dependency; `jtop` is provided by `python3-jetson-stats`.
+Release `momonga-rpm-feed-2026.10.11-1` added Fastfetch, Neofetch, `momonga-locale`, ONNX, ONNX GraphSurgeon, TensorRT Python bindings, `tegrastats`, and the `glibc-locale` outputs `locale-base-c` and `glibc-binary-localedata-c`. Release `momonga-rpm-feed-2026.10.11-2` adds the `jetson_clocks` and `nvpmodel` tools and the runtime packages they require. `jtop` is provided by `python3-jetson-stats`.
 
 ## RPM package outputs
 
@@ -333,6 +334,11 @@ Package names and their exact RPM version-release values, read from each RPM hea
 | python3-xmlrpc | 3.12.14-r0 |
 | python3-zipapp | 3.12.14-r0 |
 | python3-zoneinfo | 3.12.14-r0 |
+| tegra-nvpower | 35.6.4+20260126234748-r0 |
+| tegra-nvpmodel | 35.6.4-r0 |
+| tegra-nvpmodel-base | 35.6.4+20260126234748-r0 |
+| tegra-tools | 35.6.4+20260126234748-r0 |
+| tegra-tools-jetson-clocks | 35.6.4+20260126234748-r0 |
 | tegra-tools-tegrastats | 35.6.4+20260126234748-r0 |
 | tensorrt-trtexec-prebuilt | 8.5.2+1-r0 |
 | tensorrt-trtexec-prebuilt-dbg | 8.5.2+1-r0 |
