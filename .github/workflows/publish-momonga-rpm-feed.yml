@@ -36,7 +36,7 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v6
 
-      - name: Assemble feed from release assets
+      - name: Assemble metadata and release asset index
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
@@ -45,10 +45,6 @@ jobs:
           feed="$RUNNER_TEMP/site/rpm/momonga/aarch64"
           mkdir -p "$feed" "$RUNNER_TEMP/metadata"
 
-          gh release download "$RELEASE_TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --pattern '*.rpm' \
-            --dir "$feed"
           gh release download "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --pattern 'feed-repodata.tar.gz' \
@@ -63,9 +59,18 @@ jobs:
           test -s "$feed/repodata/repomd.xml.asc"
           test -s "$feed/RPM-GPG-KEY-momonga"
 
+          # RPMs live in the append-only release asset pool, not in Pages.
+          # Keep this tag in sync with the base URL used by createrepo_c.
+          gh release view momonga-rpm-packages \
+            --repo "$GITHUB_REPOSITORY" \
+            --json assets > "$RUNNER_TEMP/rpm-assets.json"
+
           python scripts/generate_pages_indexes.py \
             --root "$RUNNER_TEMP/site" \
-            --template scripts/templates/pages-directory-index.html.j2
+            --template scripts/templates/pages-directory-index.html.j2 \
+            --rpm-assets-json "$RUNNER_TEMP/rpm-assets.json" \
+            --release-repository "$GITHUB_REPOSITORY" \
+            --asset-release-tag momonga-rpm-packages
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

@@ -307,7 +307,7 @@ bitbake bash bat diffutils fzf gdbm glibc-locale nano ncurses neovim nodejs24 \
 
 The Node.js and Neovim binaries require glibc 2.28 and 2.34 or newer, respectively. Confirm those requirements against the target image before installing. The target's RPM dependency solver may not detect every required glibc symbol version. The `nodejs24` RPM provides both Node.js 24 and npm.
 
-ARM64 RPM feeds are published as GitHub Releases named `momonga-rpm-feed-*`. A GitHub Actions workflow deploys each release feed to GitHub Pages at `/rpm/momonga/aarch64/` and generates browsable directory indexes at every directory level. The RPMs and repository metadata use the Momonga signing key; the workflow publishes its public key beside the feed. Use this DNF configuration:
+ARM64 RPMs are stored once in the append-only GitHub Release asset pool `momonga-rpm-packages`; each `momonga-rpm-feed-*` release publishes signed repository metadata only. A GitHub Actions workflow deploys that metadata to GitHub Pages at `/rpm/momonga/aarch64/` and generates browsable indexes with direct GitHub Releases download links. The RPMs and repository metadata use the Momonga signing key; the workflow publishes its public key beside the metadata. Use this DNF configuration:
 
 The image ships it as `/etc/yum.repos.d/momonga-extra.repo` (`xavier-site-config`). Packages installed from the feed live on the rootfs slot, so install them again after a `momonga-ota` update:
 

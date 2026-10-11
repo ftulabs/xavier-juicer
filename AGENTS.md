@@ -1,6 +1,6 @@
 # Momonga ARM64 RPM repository: build, update, and publish
 
-This section is the maintainer runbook for the extra-package RPM feed. The feed is published as complete GitHub Releases and served by GitHub Pages; it is not published to R2.
+This section is the maintainer runbook for the extra-package RPM feed. RPMs are stored once in an append-only GitHub Release asset pool; signed repository metadata is published in immutable feed releases and served by GitHub Pages. It is not published to R2.
 
 ## Package scope and paths
 
@@ -56,12 +56,14 @@ for rpm in $RPM_FILES; do
 done
 ```
 
-After all package creation and RPM signing is complete, set `RPM_STAGE` to an empty staging directory under `/tmp/opencode/` and stage the **complete curated feed**: start with the previous release's RPM assets, replace superseded package EVRs with the newly built outputs, and add new package outputs. Use `MOMONGA-RPM-FEED-PACKAGES.md` to verify names and EVRs. Do not include unrelated RPMs from the deploy directory. Generate repository metadata in the staging directory, not the full deploy directory:
+After all package creation and RPM signing is complete, set `RPM_STAGE` to an empty staging directory under `/tmp/opencode/` and stage the **complete curated feed**: start with the prior curated RPM set, replace superseded package EVRs with the newly built outputs, and add new package outputs. Use `MOMONGA-RPM-FEED-PACKAGES.md` to verify names and EVRs. Do not include unrelated RPMs from the deploy directory. RPM files are served from the append-only `momonga-rpm-packages` release, so generate metadata with its exact GitHub Releases download base URL:
 
 ```sh
 CREATEREPO=$(find build-packages/tmp/work/x86_64-linux/createrepo-c-native \
   -type f -path '*/recipe-sysroot-native/usr/bin/createrepo_c' -print -quit)
-"$CREATEREPO" --database "$RPM_STAGE"
+"$CREATEREPO" --database \
+  --baseurl="https://github.com/ftulabs/momonga-os/releases/download/momonga-rpm-packages/" \
+  "$RPM_STAGE"
 ```
 
 Then create a detached ASCII-armored signature for the final `repomd.xml`:
@@ -76,9 +78,9 @@ gpg --verify "$SRC/repodata/repomd.xml.asc" "$SRC/repodata/repomd.xml"
 
 Do not rerun `bitbake package-index` after signing `repomd.xml`; regenerate and re-sign if metadata changes. The published public key must be `RPM-GPG-KEY-momonga`. Export only the public key; never export or upload the private key.
 
-## Publish a complete feed release
+## Publish RPM assets and a feed release
 
-The Pages workflow assembles the repository from assets in one release. Every update release must contain the **complete current RPM set**, not just the changed package, plus the public key and a metadata archive. Use a new unique tag such as `momonga-rpm-feed-2026.10.08-3`; do not reuse or edit an older release. Commit and push approved recipe/workflow changes before tagging, so the release uses the intended workflow version.
+The `momonga-rpm-packages` release is an append-only RPM asset pool. Upload only RPM filenames that are not already in it; never replace or re-upload an existing EVR. A feed release contains the public key and a metadata archive only. Use a new unique tag such as `momonga-rpm-feed-2026.10.08-3`; do not reuse or edit an older feed release. Commit and push approved recipe/workflow changes before tagging, so the release uses the intended workflow version.
 
 The metadata asset must be named exactly `feed-repodata.tar.gz`, and it must contain the `repodata/` directory including `repomd.xml.asc`:
 
@@ -87,18 +89,20 @@ TAG=momonga-rpm-feed-YYYY.MM.DD-N
 SRC="$PWD/build-packages/tmp/deploy/rpm/armv8a_tegra"
 tar -C "$SRC" -czf /tmp/opencode/feed-repodata.tar.gz repodata
 
+gh release upload momonga-rpm-packages "$RPM_FILES" \
+  --repo ftulabs/momonga-os
+
 git tag -a "$TAG" -m "$TAG"
 git push origin "refs/tags/$TAG"
 gh release create "$TAG" \
-  "$SRC"/*.rpm \
   "$SRC/RPM-GPG-KEY-momonga" \
   /tmp/opencode/feed-repodata.tar.gz \
   --repo ftulabs/momonga-os \
   --title "Momonga RPM feed update" \
-  --notes "Complete signed Momonga ARM64 RPM repository."
+  --notes "Signed Momonga ARM64 RPM repository metadata."
 ```
 
-`gh release create` publishes immediately. A published `momonga-rpm-feed-*` release triggers `.github/workflows/publish-momonga-rpm-feed.yml`, which assembles the feed under `/rpm/momonga/aarch64/`, generates Jinja2 directory indexes, and deploys Pages. The workflow can also be run manually with `workflow_dispatch` and a published `release_tag`.
+Create `momonga-rpm-packages` as a published release before the first upload. `gh release create` publishes the feed release immediately. A published `momonga-rpm-feed-*` release triggers `.github/workflows/publish-momonga-rpm-feed.yml`, which assembles metadata under `/rpm/momonga/aarch64/`, generates Jinja2 directory indexes with direct GitHub Releases RPM links, and deploys Pages. The workflow can also be run manually with `workflow_dispatch` and a published `release_tag`.
 
 ## Configure and update Xavier
 
@@ -124,4 +128,4 @@ sudo dnf install fzf bat nodejs24 zsh
 
 Neovim's prebuilt binary requires glibc 2.34 or newer; check Xavier's glibc before installing it. Node.js 24 requires glibc 2.28 or newer. Do not assume the target RPM solver checks every required symbol version.
 
-The latest successful feed release is `momonga-rpm-feed-2026.10.09-5`. It contains 315 signed RPMs, including both `locale-base-c` and `glibc-binary-localedata-c` so existing systems can install C.UTF-8. The Pages workflow requires the metadata asset to be named exactly `feed-repodata.tar.gz`. Verify live RPM and metadata URLs after each release. The current Pages custom domain is `kani.ftds.online`; check its DNS/Pages configuration if the feed URL changes.
+The latest successful legacy feed release is `momonga-rpm-feed-2026.10.09-5`; its 315 RPMs must be uploaded to `momonga-rpm-packages` before publishing the first metadata-only feed release. It includes both `locale-base-c` and `glibc-binary-localedata-c` so existing systems can install C.UTF-8. The Pages workflow requires the metadata asset to be named exactly `feed-repodata.tar.gz`. Verify live RPM and metadata URLs after each release. The current Pages custom domain is `kani.ftds.online`; check its DNS/Pages configuration if the feed URL changes.

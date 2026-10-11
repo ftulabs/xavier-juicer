@@ -15,7 +15,7 @@ bitbake bash bat diffutils fzf gdbm glibc-locale nano ncurses neovim nodejs24 \
   tegra-tools tensorrt-trtexec-prebuilt zsh
 ```
 
-BitBake also builds each recipe's dependencies. Follow `AGENTS.md` to assemble the curated full feed, sign RPMs, generate and sign metadata, and publish a complete feed release. Do not use `bitbake package-index` on the full deploy directory as the public feed contains only the packages listed in this index.
+BitBake also builds each recipe's dependencies. Follow `AGENTS.md` to assemble the curated full feed, sign RPMs, generate and sign metadata, upload only new RPM assets to the append-only package release, and publish a metadata-only feed release. Do not use `bitbake package-index` on the full deploy directory as the public feed contains only the packages listed in this index.
 
 ## Packages added or updated in release 2026.10.09-5
 
