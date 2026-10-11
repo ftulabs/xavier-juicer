@@ -49,7 +49,7 @@ def release_rpm_entries(
             {
                 "name": name,
                 "href": base_url + quote(name, safe="@:+,.-_~"),
-                "kind": "RPM (GitHub Release)",
+                "kind": "RPM",
                 "modified": modified,
                 "size": display_size(size) if isinstance(size, int) else "—",
             }
